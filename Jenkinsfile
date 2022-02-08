@@ -1,14 +1,15 @@
 pipeline {
     agent any
     triggers {
-        cron('H H(21-23) */2 * *')
+        cron('H H(13-14) * * *')
     }
     tools {
         jdk 'graalvm'
     }
     options {
         timestamps()
-        buildDiscarder(logRotator(numToKeepStr: '15'))
+        ansiColor("xterm")
+        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
     stages {
         stage('Checkout') {
@@ -16,26 +17,55 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/jogr-mtm/quarkus-kubernetes-quickstart.git'
             }
         }
-        stage ('Initialize') {
+        stage('Build') {
             steps {
-                sh '''
-                    echo "PATH = ${PATH}"
-                    which java
-                '''
+                sh './mvnw -V clean install -DskipTests -DskipITs -DskipDocs'
             }
         }
-        stage('quarkus:dev') {
+        stage('Test JVM') {
             options {
-                timeout(time: 30, unit: 'MINUTES')
+                timeout(time: 120, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw -fn clean package -Pnative'
+                sh './mvnw -fn clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-kafka -Dtest-elasticsearch -Dtest-vault -Dtest-dynamodb -Dtest-keycloak -DskipDocs'
+            }
+            post {
+                always {
+                    junit '**/target/*-reports/TEST*.xml'
+                }
+            }
+        }
+        stage('Test Native') {
+            options {
+                timeout(time: 4, unit: 'HOURS')
+            }
+            steps {
+                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-kafka -Dtest-elasticsearch -Dtest-vault -Dtest-dynamodb -Dtest-keycloak -DskipDocs'
+            }
+            post {
+                always {
+                    junit '**/target/*-reports/TEST*.xml'
+                }
+            }
+        }
+        stage('Reports') {
+            parallel {
+                stage('Disk usage') {
+                    steps {
+                        sh 'du -cskh */*'
+                    }
+                }
+                stage('Archive artifacts') {
+                    steps {
+                        archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
+                    }
+                }
             }
         }
     }
     post {
         always {
-            cleanWs()
+            deleteDir()
         }
     }
 }
