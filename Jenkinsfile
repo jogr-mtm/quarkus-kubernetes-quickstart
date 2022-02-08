@@ -24,29 +24,12 @@ pipeline {
                 '''
             }
         }
-        stage('Test JVM') {
+        stage('quarkus:dev') {
             options {
                 timeout(time: 30, unit: 'MINUTES')
             }
             steps {
-                sh 'TESTCONTAINERS_RYUK_DISABLED=true ./mvnw -fn clean verify'
-            }
-            post {
-                always {
-                    junit '**/target/*-reports/TEST*.xml'
-                    sh '''
-                        for i in `find . | grep 'runner.jar$' | sort`; do
-                            QS_DIR="$(dirname $(dirname $i))"
-                            LIB_DIR="`dirname $i`/lib"
-                            LIB_SIZE=`du -k $LIB_DIR | cut -f1`
-                            LIB_COUNT=`ls -1 $LIB_DIR | wc -l | sed "s/ //g"`
-                            echo "$QS_DIR,$LIB_COUNT files,$LIB_SIZE Kbyte,in $LIB_DIR"
-                        done > disk-usage-jvm-tmp.txt
-
-                        column -t -s',' disk-usage-jvm-tmp.txt > disk-usage-jvm.txt
-                        rm disk-usage-jvm-tmp.txt
-                    '''
-                }
+                sh './mvnw -fn clean package -Pnative'
             }
         }
         stage('Test Native') {
