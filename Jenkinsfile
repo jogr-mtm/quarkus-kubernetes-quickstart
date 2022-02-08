@@ -1,5 +1,4 @@
 pipeline {
-
     agent {
         docker {
             image 'maven:3.8.1-adoptopenjdk-11'
@@ -8,9 +7,9 @@ pipeline {
     }
     stages {
         stage('Initialize'){
-                def dockerHome = tool 'jenkins-docker'
-                env.PATH = "${dockerHome}/bin:${env.PATH}"
-            }
+            def dockerHome = tool 'jenkins-docker'
+            env.PATH = "${dockerHome}/bin:${env.PATH}"
+        }
         stage('Build') {
             steps {
                 sh 'mvn -B -DskipTests clean package'
