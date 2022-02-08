@@ -1,15 +1,14 @@
 pipeline {
     agent any
     triggers {
-        cron('H H(13-14) * * *')
+        cron('H H(21-23) */2 * *')
     }
     tools {
         jdk 'graalvm'
     }
     options {
         timestamps()
-        ansiColor("xterm")
-        buildDiscarder(logRotator(numToKeepStr: '10'))
+        buildDiscarder(logRotator(numToKeepStr: '15'))
     }
     stages {
         stage('Checkout') {
@@ -17,55 +16,28 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/jogr-mtm/quarkus-kubernetes-quickstart.git'
             }
         }
-        stage('Build') {
+        stage ('Initialize') {
             steps {
-                sh './mvnw -V clean install -DskipTests -DskipITs -DskipDocs'
+                sh '''
+                    echo "PATH = ${PATH}"
+                    which java
+                '''
             }
         }
-        stage('Test JVM') {
+        stage('quarkus:dev') {
             options {
-                timeout(time: 120, unit: 'MINUTES')
+                timeout(time: 30, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw -fn clean verify -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-kafka -Dtest-elasticsearch -Dtest-vault -Dtest-dynamodb -Dtest-keycloak -DskipDocs'
-            }
-            post {
-                always {
-                    junit '**/target/*-reports/TEST*.xml'
-                }
-            }
-        }
-        stage('Test Native') {
-            options {
-                timeout(time: 4, unit: 'HOURS')
-            }
-            steps {
-                sh 'GRAALVM_HOME=$JAVA_HOME ./mvnw -fn clean verify -Dnative -Ddocker -Dtest-mariadb -Dtest-mssql -Dtest-mysql -Dtest-postgresql -Dtest-gelf -Dtest-neo4j -Dtest-kafka -Dtest-elasticsearch -Dtest-vault -Dtest-dynamodb -Dtest-keycloak -DskipDocs'
-            }
-            post {
-                always {
-                    junit '**/target/*-reports/TEST*.xml'
-                }
-            }
-        }
-        stage('Reports') {
-            parallel {
-                stage('Disk usage') {
-                    steps {
-                        sh 'du -cskh */*'
-                    }
-                }
-                stage('Archive artifacts') {
-                    steps {
-                        archiveArtifacts artifacts: '**/target/*-reports/TEST*.xml', fingerprint: false
-                    }
-                }
+                sh './mvnw package -Pnative -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true'
+                sh 'docker build -f src/main/docker/Dockerfile.native -t quarkus/kubernetes-quickstart .'
+                sh 'docker push frontwalkerjogr/kubernetes-quickstart-newImage'
             }
         }
     }
     post {
         always {
-            deleteDir()
+            cleanWs()
         }
     }
 }
