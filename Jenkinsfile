@@ -30,8 +30,14 @@ pipeline {
             }
             steps {
                 sh './mvnw package -Pnative -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true'
-                sh 'docker build -f src/main/docker/Dockerfile.native -t quarkus/kubernetes-quickstart .'
-                //ssh 'docker push frontwalkerjogr/kubernetes-quickstart-newImage'
+            }
+        }
+        stage ('docker build') {
+            options {
+                timeout(time: 10, unit: 'MINUTES')
+            }
+            steps {
+                sh 'docker build -f src/main/docker/Dockerfile.native -t frontwalkerjogr/kube-quar-quickstart:jenfile'
             }
         }
     }
