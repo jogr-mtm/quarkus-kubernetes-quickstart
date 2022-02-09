@@ -2,7 +2,6 @@ pipeline {
     agent {
         docker {
             image 'caladreas/jpc-graal:0.1.0-maven-b1'
-            label 'graalvm'
             args  '-v /tmp:/tmp'
         }
     }
