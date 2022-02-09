@@ -29,7 +29,7 @@ pipeline {
                 timeout(time: 30, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw package -Pnative'
+                sh './mvnw package -Pnative -Dquarkus.native.container-runtime=docker'
             }
         }
         stage ('docker build') {
