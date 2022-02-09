@@ -31,7 +31,7 @@ pipeline {
             steps {
                 sh './mvnw package -Pnative -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true'
                 sh 'docker build -f src/main/docker/Dockerfile.native -t quarkus/kubernetes-quickstart .'
-                sh 'docker push frontwalkerjogr/kubernetes-quickstart-newImage'
+                //ssh 'docker push frontwalkerjogr/kubernetes-quickstart-newImage'
             }
         }
     }
