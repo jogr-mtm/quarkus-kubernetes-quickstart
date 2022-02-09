@@ -1,5 +1,11 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'caladreas/jpc-graal:0.1.0-maven-b1'
+            label 'graalvm'
+            args  '-v /tmp:/tmp'
+        }
+    }
     triggers {
         cron('H H(21-23) */2 * *')
     }
@@ -29,6 +35,7 @@ pipeline {
                 timeout(time: 30, unit: 'MINUTES')
             }
             steps {
+                sh 'echo "Running clean package"'
                 sh 'echo "Running clean package"'
                 sh './mvnw clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=docker'
             }
