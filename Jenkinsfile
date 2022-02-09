@@ -29,7 +29,7 @@ pipeline {
                 timeout(time: 30, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw package -Pnative -Dquarkus.native.container-runtime=docker'
+                sh './mvnw clean package -Pnative -Dquarkus.native.container-runtime=podman'
             }
         }
         stage ('docker build') {
