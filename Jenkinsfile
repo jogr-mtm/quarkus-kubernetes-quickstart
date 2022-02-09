@@ -4,7 +4,7 @@ pipeline {
         cron('H H(21-23) */2 * *')
     }
     tools {
-        jdk 'graalvm'
+        jdk 'built-in'
     }
     options {
         timestamps()
