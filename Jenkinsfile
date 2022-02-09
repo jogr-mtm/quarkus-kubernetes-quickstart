@@ -29,7 +29,7 @@ pipeline {
                 timeout(time: 30, unit: 'MINUTES')
             }
             steps {
-                sh 'ECHO Running clean package'
+                sh 'echo "Running clean package"'
                 sh './mvnw clean package -Pnative -Dquarkus.native.container-runtime=docker'
             }
         }
