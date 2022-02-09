@@ -29,7 +29,7 @@ pipeline {
                 timeout(time: 30, unit: 'MINUTES')
             }
             steps {
-                sh './mvnw package -Pnative -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true'
+                sh './mvnw package -Pnative'
             }
         }
         stage ('docker build') {
