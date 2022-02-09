@@ -38,5 +38,5 @@ jobs:
       - name: Run a multi-line script
         run: |
           cd $GITHUB_WORKSPACE
-          ./mvnw clean,
+          ./mvnw clean package -Pnative
           echo test, and deploy your project.
