@@ -30,7 +30,7 @@ pipeline {
             }
             steps {
                 sh 'echo "Running clean package"'
-                sh './mvnw clean package -Pnative -Dquarkus.native.container-runtime=docker'
+                sh './mvnw clean package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=docker'
             }
         }
         stage ('docker build') {
