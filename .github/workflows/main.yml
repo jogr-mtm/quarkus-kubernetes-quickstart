@@ -40,3 +40,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           ./mvnw clean package -Pnative
           echo test, and deploy your project.
+          
+      - name: Dockerize a Quarkus native application
+        uses: maxday/quarkus-dockerize-action@1
+
